@@ -1,7 +1,7 @@
 #include"library.h"
 
 
-float E(int x){
+float calcE(int x){
     if (!bool(x))
         throw std::runtime_error("[ERROR] argument can not been equal zero");
 
