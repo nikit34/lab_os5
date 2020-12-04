@@ -30,6 +30,8 @@ void sortHoary(int* array, uint64_t& first, uint64_t& last) {
 
 int * Sort(int * array, uint64_t&& n){
     uint64_t s = 0;
+    if (n < 2)
+        throw std::runtime_error("[ERROR] count element of array must be great 2");
     sortHoary(array, s, n);
     return array;
 }

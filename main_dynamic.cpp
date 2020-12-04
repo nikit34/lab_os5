@@ -4,23 +4,24 @@
 
 void *handleLib = nullptr;
 
-extern bool mode = false;
+static bool mode = false;
 
 float (* calcE)(int x) = nullptr;
 int* (* Sort)(int * array, uint64_t&& n) = nullptr;
 char *error;
 
 
-void loadDLibs(){
+void loadLibs(){
     const char *name;
 
-    if(mode){
+    // if(mode){
         name = "operation.so";
-    } else {
-        name = "translation.so";
-    }
+    // } else {
+    //     name = "translation.so";
+    // }
 
     handleLib = dlopen(name, RTLD_LAZY);
+
     if(!handleLib){
         fprintf(stderr, "%s\n", dlerror());
         exit(EXIT_FAILURE);
@@ -32,10 +33,10 @@ void closeLib(){
 }
 
 void openLib(){
-    loadDLibs();
+    loadLibs();
 
-    float* calcE = (float*) dlsym(handleLib, "calcE");
-    int* Sort = (int*) dlsym(handleLib, "Sort");
+    *(void**) (&calcE) = dlsym(handleLib, "calcE");
+    // *(void**) (&Sort) = dlsym(handleLib, "Sort");
 
     if(error = dlerror()) {
         fprintf(stderr, "%s\n", error);
@@ -43,7 +44,7 @@ void openLib(){
     }
 }
 
-void changeContext(){
+void changeLib(){
     closeLib();
 
     mode = (bool(mode)) ? false : true;
@@ -53,9 +54,15 @@ void changeContext(){
 }
 
 inline void menu(){
+    std::cout << "0. Change library" << std::endl;
     std::cout << "1. Calc (1 + 1/x) ^ x" << std::endl;
     std::cout << "2. Sort Hoarry" << std::endl;
 }
+
+// g++ -shared -fPIC translation.cpp -o translation.so
+// g++ -shared -fPIC operation.cpp -o operation.so
+// export LD_LIBRARY_PATH=/mnt/c/Users/permi/source/repos/university/os/5_server_msg
+// g++ main_dynamic.cpp -ldl
 
 int main(){
     mode = false;
@@ -78,13 +85,15 @@ int main(){
 
         switch(cmd){
             case 0:{
-                changeContext();
+                changeLib();
                 break;
             }
             case 1:{
                 std::cout << std::endl << "x: ";
                 std::cin >> x;
-                std::cout << "Result calcE(x): " << calcE(x) << std::endl << std::endl;
+                std::cout << "Result calcE(x): ";
+                float res = calcE(x);
+                std::cout << res << std::endl;
                 break;
             }
             case 2:{
@@ -122,7 +131,7 @@ int main(){
                     ++size;
                     capacity = sizeof(array) / sizeof(array[0]);
                 }
-                Sort(array, size - 1);
+                // Sort(array, size - 1);
                 std::cout << "Result Sort(array): ";
                 for (uint64_t i = 0; i < size; ++i)
                     std::cout << array[i] << " ";
