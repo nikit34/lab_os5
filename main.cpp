@@ -4,7 +4,7 @@
 
 
 inline void menu(){
-    std::cout << "1. Calc (1 + 1/x) ^ x" << std::endl;
+    std::cout << "1. translation to bin" << std::endl;
     std::cout << "2. Sort Hoarry" << std::endl;
 }
 
@@ -19,7 +19,7 @@ int main() {
     int* array;
     uint64_t size, capacity;
 
-    do {
+    while(true) {
         menu();
         std::cin >> cmd;
         std::cin.get();
@@ -27,7 +27,7 @@ int main() {
             case 1:{
                 std::cout << std::endl << "x: ";
                 std::cin >> x;
-                std::cout << "Result calcE(x): " << calcE(x) << std::endl << std::endl;
+                std::cout << "Result translation(x): " << translation(x) << std::endl << std::endl;
                 break;
             }
             case 2: {
@@ -63,9 +63,9 @@ int main() {
 
                     array[size] = (int)tmp;
                     ++size;
-                    capacity = sizeof(array) / sizeof(array[0]);
+                    capacity = sizeof(*array) / sizeof(array[0]);
                 }
-                Sort(array, size - 1);
+                array = Sort(array, size - 1);
                 std::cout << "Result Sort(array): ";
                 for (uint64_t i = 0; i < size; ++i)
                     std::cout << array[i] << " ";
@@ -78,6 +78,6 @@ int main() {
                 std::cout << std::endl << "[ERROR] Key is not defined" << std::endl;
             }
         }
-    } while(true);
+    }
     return 0;
 }

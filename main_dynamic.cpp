@@ -4,26 +4,26 @@
 
 void *handleLib = nullptr;
 
-static bool mode = false;
+bool mode = false;
 
-float (* calcE)(int x) = nullptr;
+char* (*translation)(long x) = nullptr;
 int* (* Sort)(int * array, uint64_t&& n) = nullptr;
 char *error;
 
 
-void loadLibs(){
+void loadLibs(bool mode){
     const char *name;
 
-    // if(mode){
-        name = "operation.so";
-    // } else {
-    //     name = "translation.so";
-    // }
+    if(mode){
+        name = "LibSort.so";
+    } else {
+        name = "LibTrans.so";
+    }
 
     handleLib = dlopen(name, RTLD_LAZY);
 
-    if(!handleLib){
-        fprintf(stderr, "%s\n", dlerror());
+    if((error = dlerror()) != nullptr) {
+        fprintf(stderr, "error loadLibs: %s\n", error);
         exit(EXIT_FAILURE);
     }
 }
@@ -33,13 +33,15 @@ void closeLib(){
 }
 
 void openLib(){
-    loadLibs();
+    loadLibs(mode);
 
-    *(void**) (&calcE) = dlsym(handleLib, "calcE");
-    // *(void**) (&Sort) = dlsym(handleLib, "Sort");
+    if (!mode)
+        *(void**) (&translation) = dlsym(handleLib, "translation");
+    else
+        *(void**) (&Sort) = dlsym(handleLib, "Sort");
 
-    if(error = dlerror()) {
-        fprintf(stderr, "%s\n", error);
+    if((error = dlerror()) != nullptr) {
+        fprintf(stderr, "error openLib: %s\n", error);
         exit(EXIT_FAILURE);
     }
 }
@@ -55,8 +57,10 @@ void changeLib(){
 
 inline void menu(){
     std::cout << "0. Change library" << std::endl;
-    std::cout << "1. Calc (1 + 1/x) ^ x" << std::endl;
-    std::cout << "2. Sort Hoarry" << std::endl;
+    if (mode)
+        std::cout << "2. Sort Hoarry" << std::endl;
+    else
+        std::cout << "1. Calc to bin" << std::endl;
 }
 
 // g++ -shared -fPIC translation.cpp -o translation.so
@@ -78,7 +82,7 @@ int main(){
     int* array;
     uint64_t size, capacity;
 
-    do{
+    while(true) {
         menu();
         std::cin >> cmd;
         std::cin.get();
@@ -91,8 +95,8 @@ int main(){
             case 1:{
                 std::cout << std::endl << "x: ";
                 std::cin >> x;
-                std::cout << "Result calcE(x): ";
-                float res = calcE(x);
+                std::cout << "Result translation(x): ";
+                char* res = (char*)translation(x);
                 std::cout << res << std::endl;
                 break;
             }
@@ -129,9 +133,9 @@ int main(){
 
                     array[size] = (int)tmp;
                     ++size;
-                    capacity = sizeof(array) / sizeof(array[0]);
+                    capacity = sizeof(*array) / sizeof(array[0]);
                 }
-                // Sort(array, size - 1);
+                array = Sort(array, size - 1);
                 std::cout << "Result Sort(array): ";
                 for (uint64_t i = 0; i < size; ++i)
                     std::cout << array[i] << " ";
@@ -144,6 +148,7 @@ int main(){
                 std::cout << std::endl << "[ERROR] Key is not defined" << std::endl;
             }
         }
-    } while(true);
+    }
     closeLib();
+    return 0;
 }
